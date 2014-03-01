@@ -1,0 +1,11 @@
+.chatbox {
+   margin-top: 10px;
+   height: 300px;
+ }
+
+ .chatArea {
+   height: 230px;
+   overflow: auto;
+   margin-bottom: 6px;
+   border: 1px solid #ccc;
+ }

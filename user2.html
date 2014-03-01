@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat App by Somesh</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <h1>Hello, Somesh!!</h1>
+        <div class="col-md-10">
+          <div class="invite" style="display:none">
+            <p>Surbhi is requesting to chat</p><br>
+            <!-- Indicates a successful or positive action -->
+            <button type="button" class="btn btn-success" id="chatAccept">Accept</button>
+            <button type="button" class="btn btn-warning" id="chatReject">Reject</button>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="connection-status"></div>
+        </div>
+      </div><!-- row -->
+      <div class="row chat" style="display:none">
+        <div class="col-md-6 chatbox">
+          <div class="row chatArea">
+            <!-- <p>hi</p> -->
+            <ul id="messages" class="list-group"></ul>
+          </div>
+          <div class="row chatButton">
+            <div class="col-lg-12">
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Message"  id="user_message">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="button" id="send_btn">Send Message</button>
+                </span>
+              </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+          </div>
+        </div>
+      </div>
+    </div><!-- container -->
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="http://js.pusher.com/1.12/pusher.min.js"></script>
+    <script>
+       // Pusher.log = function( msg ) {
+       //   if( window.console && window.console.log ) {
+       //     window.console.log( msg );
+       //   }
+       // };
+
+       Pusher.channel_auth_endpoint = 'auth.php';
+       
+       var pusher = new Pusher('0d2edb0cc4800c60cdf7');
+       pusher.connection.bind('state_change', function( change ) {
+        $('.connection-status').append(change.current);
+       });
+
+       
+       $("#user_message").keypress(function(event){
+    	if(event.keyCode == 13){
+        event.preventDefault();
+        $("#send_btn").click();
+	}
+	});
+       
+       var channel = pusher.subscribe( 'private-test_channel' );
+       channel.bind( 'new_message_chat', addMessage );
+       channel.bind('client-invite', invitation);
+       
+       function addMessage( data ) {
+
+         if(data.name == 'Somesh'){
+          data.name = 'me'
+          var li = $('<li class="list-group-item" style="text-align: right;">'+data.name+': '+data.text+'</li>');
+         } else{
+          var li = $('<li class="list-group-item" style="text-align: left;">'+data.name+': '+data.text+'</li>');
+         }
+          
+         li.hide();
+         $('#messages').append(li);
+         li.slideDown();
+         $('.chatArea').animate({scrollTop: $('.chatArea').prop("scrollHeight")}, 500);
+       }
+
+       function invitation( data ) {
+         $('.chat').hide();
+         $('.invite').toggle();
+       }
+
+       $('#chatAccept').click(function(){
+        var triggered = channel.trigger('client-chat-result', { inv: 'ACCEPT' });
+        $('.invite').toggle();
+        $('.chat').toggle();
+       });
+
+       $('#chatReject').click(function(){
+        var triggered = channel.trigger('client-chat-result', { inv: 'REJECT' });
+        $('.invite').toggle();
+       });
+       
+       $( function() {
+         
+         $('#send_btn').click( function() {
+           
+           var userMessageEl = $('#user_message');
+           var message = $.trim( userMessageEl.val() );
+           if( message ) {
+             $.ajax( {
+               url: 'new_message.php',
+               type: 'post',
+               data: {
+                 text: message,
+                 name: 'Somesh'
+               },
+               success: function() {
+                 userMessageEl.val('');
+               }
+             });
+           }
+           
+           return false;
+         } );
+         
+       } );
+    </script>
+
+  </body>
+</html>
